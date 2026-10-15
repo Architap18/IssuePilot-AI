@@ -10,14 +10,17 @@ const PORT = process.env.PORT || 3000
 
 // Allow the Vite dev server to call this API (5173 is the default; Vite
 // may use 5174+ if 5173 is already taken).
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:5174',
+  process.env.FRONTEND_URL,
+].filter(Boolean)
+
 app.use(
   cors({
-    origin: [
-      'http://localhost:5173',
-      'http://localhost:5174',
-      'http://127.0.0.1:5173',
-      'http://127.0.0.1:5174',
-    ],
+    origin: allowedOrigins,
   }),
 )
 
