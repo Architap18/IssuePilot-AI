@@ -222,7 +222,7 @@ function IssueResult({ data, onAnalyze, aiState, aiResult, aiError }) {
               <p className="ai-cta-desc">
                 Get a beginner-friendly explanation, difficulty estimate,
                 and actionable next steps — powered by{' '}
-                <strong>Llama 3.1 8B</strong> via Groq.
+                <strong>GPT-OSS 20B</strong> via Groq.
               </p>
 
               <button
@@ -239,7 +239,7 @@ function IssueResult({ data, onAnalyze, aiState, aiResult, aiError }) {
           {aiState === 'loading' && (
             <div className="ai-loading" aria-live="polite">
               <div className="loading-ring" aria-hidden="true" />
-              <p>Asking Llama 3.1 8B…</p>
+              <p>Asking GPT-OSS 20B…</p>
             </div>
           )}
 
@@ -392,7 +392,6 @@ function App() {
           className="hero-badge"
           aria-label="Hacktoberfest 2026 challenge"
         >
-          🎃 Hacktoberfest Challenge
         </div>
 
         <h1 className="hero-title">
@@ -511,7 +510,7 @@ function App() {
           >
             Groq
           </a>{' '}
-          (llama-3.1-8b-instant).
+          (GPT-OSS 20B).
         </p>
       </footer>
     </div>
