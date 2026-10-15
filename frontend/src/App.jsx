@@ -1,12 +1,15 @@
+
 import { useState } from 'react'
 import './App.css'
 
-// ── utility helpers ───────────────────────────────────────────────────────────
+// Use the deployed backend in production and localhost during development.
+const API_BASE_URL = (
+  import.meta.env.VITE_API_BASE_URL ||
+  (import.meta.env.DEV ? 'http://localhost:3000' : '')
+).replace(/\/$/, '')
 
-/**
- * Convert a hex color string to an rgba string with the given opacity.
- * Used to derive readable text color from GitHub label hex colors.
- */
+// ── Utility helpers ──────────────────────────────────────────────────────────
+
 function hexToRgb(hex) {
   const clean = hex.replace('#', '')
   const r = parseInt(clean.substring(0, 2), 16)
@@ -15,20 +18,12 @@ function hexToRgb(hex) {
   return { r, g, b }
 }
 
-/**
- * Return 'dark' or 'light' depending on the perceived brightness of the
- * background hex color, so we can pick a legible label text color.
- */
 function labelTextColor(hex) {
   const { r, g, b } = hexToRgb(hex)
-  // Perceived luminance formula (WCAG)
   const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
   return luminance > 0.55 ? '#1a1a2e' : '#f5f5fa'
 }
 
-/**
- * Format an ISO date string into a human-readable relative time or date.
- */
 function formatDate(iso) {
   const date = new Date(iso)
   const now = new Date()
@@ -38,16 +33,26 @@ function formatDate(iso) {
   if (diffDays === 0) return 'today'
   if (diffDays === 1) return 'yesterday'
   if (diffDays < 30) return `${diffDays} days ago`
-  return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
+
+  return date.toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  })
 }
 
-// ── sub-components ────────────────────────────────────────────────────────────
+// ── Sub-components ───────────────────────────────────────────────────────────
 
 function LabelChip({ label }) {
   const bg = `#${label.color}`
   const color = labelTextColor(label.color)
+
   return (
-    <span className="label-chip" style={{ backgroundColor: bg, color }} title={label.description || label.name}>
+    <span
+      className="label-chip"
+      style={{ backgroundColor: bg, color }}
+      title={label.description || label.name}
+    >
       {label.name}
     </span>
   )
@@ -55,13 +60,17 @@ function LabelChip({ label }) {
 
 function CommentItem({ comment }) {
   const initial = comment.author.charAt(0)
+
   return (
     <article className="comment-item">
       <div className="comment-header">
-        <div className="comment-avatar" aria-hidden="true">{initial}</div>
+        <div className="comment-avatar" aria-hidden="true">
+          {initial}
+        </div>
         <span className="comment-author">{comment.author}</span>
         <span className="comment-date">{formatDate(comment.createdAt)}</span>
       </div>
+
       <div className="comment-body">
         {comment.body.trim() || <em>Empty comment</em>}
       </div>
@@ -74,13 +83,15 @@ function IssueResult({ data, onAnalyze, aiState, aiResult, aiError }) {
 
   return (
     <section className="result-panel" aria-label="Issue analysis results">
-
-      {/* ── Issue overview card ──────────────────────────────────────────── */}
+      {/* Issue overview */}
       <div className="card">
         <div className="card-header">
-          <span className="card-header-icon" aria-hidden="true">📋</span>
+          <span className="card-header-icon" aria-hidden="true">
+            📋
+          </span>
           <h2>Issue Overview</h2>
         </div>
+
         <div className="card-body">
           <div className="issue-meta-row">
             <a
@@ -92,14 +103,20 @@ function IssueResult({ data, onAnalyze, aiState, aiResult, aiError }) {
             >
               {repository.fullName}
             </a>
+
             <span className="issue-number">#{issue.number}</span>
+
             <span className={`state-badge ${issue.state}`}>
               {issue.state === 'open' ? '● Open' : '✓ Closed'}
             </span>
           </div>
 
           <h3 className="issue-title">
-            <a href={issue.htmlUrl} target="_blank" rel="noopener noreferrer">
+            <a
+              href={issue.htmlUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               {issue.title}
             </a>
           </h3>
@@ -113,67 +130,101 @@ function IssueResult({ data, onAnalyze, aiState, aiResult, aiError }) {
           )}
 
           <p className="issue-byline">
-            Opened by <strong>{issue.author}</strong> · {formatDate(issue.createdAt)}
-            {issue.commentsCount > 0 && ` · ${issue.commentsCount} comment${issue.commentsCount !== 1 ? 's' : ''}`}
+            Opened by <strong>{issue.author}</strong> ·{' '}
+            {formatDate(issue.createdAt)}
+            {issue.commentsCount > 0 &&
+              ` · ${issue.commentsCount} comment${
+                issue.commentsCount !== 1 ? 's' : ''
+              }`}
           </p>
         </div>
       </div>
 
-      {/* ── Description card ────────────────────────────────────────────── */}
+      {/* Issue description */}
       <div className="card">
         <div className="card-header">
-          <span className="card-header-icon" aria-hidden="true">📝</span>
+          <span className="card-header-icon" aria-hidden="true">
+            📝
+          </span>
           <h2>Description</h2>
         </div>
+
         <div className="card-body">
           {issue.body.trim() ? (
             <div className="issue-body">{issue.body}</div>
           ) : (
-            <p className="no-body">No description provided for this issue.</p>
+            <p className="no-body">
+              No description provided for this issue.
+            </p>
           )}
         </div>
       </div>
 
-      {/* ── Comments card ───────────────────────────────────────────────── */}
+      {/* Issue comments */}
       {comments.length > 0 && (
         <div className="card">
           <div className="card-header">
-            <span className="card-header-icon" aria-hidden="true">💬</span>
-            <h2>Comments ({comments.length}{meta.totalComments > comments.length ? ` of ${meta.totalComments}` : ''})</h2>
+            <span className="card-header-icon" aria-hidden="true">
+              💬
+            </span>
+
+            <h2>
+              Comments ({comments.length}
+              {meta.totalComments > comments.length
+                ? ` of ${meta.totalComments}`
+                : ''}
+              )
+            </h2>
           </div>
+
           <div className="card-body">
             <div className="comments-list">
-              {comments.map((c) => (
-                <CommentItem key={c.id} comment={c} />
+              {comments.map((comment) => (
+                <CommentItem key={comment.id} comment={comment} />
               ))}
             </div>
+
             {meta.totalComments > meta.commentsFetched && (
               <p className="comments-note">
-                Showing first {meta.commentsFetched} of {meta.totalComments} comments.{' '}
-                <a href={issue.htmlUrl} target="_blank" rel="noopener noreferrer">View all on GitHub ↗</a>
+                Showing first {meta.commentsFetched} of{' '}
+                {meta.totalComments} comments.{' '}
+                <a
+                  href={issue.htmlUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  View all on GitHub ↗
+                </a>
               </p>
             )}
           </div>
         </div>
       )}
 
-      {/* ── AI Analysis card (Phase 2) ───────────────────────────────────── */}
+      {/* AI analysis */}
       <div className="card ai-card">
         <div className="card-header">
-          <span className="card-header-icon" aria-hidden="true">🤖</span>
+          <span className="card-header-icon" aria-hidden="true">
+            🤖
+          </span>
           <h2>AI Analysis</h2>
+
           {aiState === 'success' && aiResult && (
-            <span className="ai-model-badge" title="Model used">{aiResult.model}</span>
+            <span className="ai-model-badge" title="Model used">
+              {aiResult.model}
+            </span>
           )}
         </div>
+
         <div className="card-body">
-          {/* Idle: show the Analyze button */}
           {aiState === 'idle' && (
             <div className="ai-cta">
               <p className="ai-cta-desc">
-                Get a beginner-friendly explanation, difficulty estimate, and actionable
-                next steps — powered by <strong>Llama 3.1 8B</strong> via Groq.
+                Get a beginner-friendly explanation, difficulty estimate,
+                and actionable next steps — powered by{' '}
+                <strong>Llama 3.1 8B</strong> via Groq.
               </p>
+
               <button
                 id="ai-analyze-btn"
                 className="btn-ai-analyze"
@@ -185,7 +236,6 @@ function IssueResult({ data, onAnalyze, aiState, aiResult, aiError }) {
             </div>
           )}
 
-          {/* Loading */}
           {aiState === 'loading' && (
             <div className="ai-loading" aria-live="polite">
               <div className="loading-ring" aria-hidden="true" />
@@ -193,13 +243,15 @@ function IssueResult({ data, onAnalyze, aiState, aiResult, aiError }) {
             </div>
           )}
 
-          {/* Error */}
           {aiState === 'error' && (
             <>
               <div className="error-banner" role="alert">
-                <span className="error-icon" aria-hidden="true">⚠️</span>
+                <span className="error-icon" aria-hidden="true">
+                  ⚠️
+                </span>
                 <span>{aiError}</span>
               </div>
+
               <button
                 className="btn-ai-analyze"
                 onClick={onAnalyze}
@@ -210,42 +262,45 @@ function IssueResult({ data, onAnalyze, aiState, aiResult, aiError }) {
             </>
           )}
 
-          {/* Result */}
           {aiState === 'success' && aiResult && (
             <div className="ai-result">
-              <pre className="ai-analysis-text">{aiResult.analysis}</pre>
+              <pre className="ai-analysis-text">
+                {aiResult.analysis}
+              </pre>
+
               {aiResult.usage && (
                 <p className="ai-usage-note">
-                  Tokens used: {aiResult.usage.total_tokens} ({aiResult.usage.prompt_tokens} prompt
-                  {' '}+ {aiResult.usage.completion_tokens} completion)
+                  Tokens used: {aiResult.usage.total_tokens} (
+                  {aiResult.usage.prompt_tokens} prompt +{' '}
+                  {aiResult.usage.completion_tokens} completion)
                 </p>
               )}
             </div>
           )}
         </div>
       </div>
-
     </section>
   )
 }
 
-// ── main App ──────────────────────────────────────────────────────────────────
+// ── Main application ─────────────────────────────────────────────────────────
 
 function App() {
   const [url, setUrl] = useState('')
-  const [state, setState] = useState('idle') // 'idle' | 'loading' | 'success' | 'error'
+  const [state, setState] = useState('idle')
   const [result, setResult] = useState(null)
   const [errorMsg, setErrorMsg] = useState('')
 
-  // Phase 2 AI analysis state (separate from issue-fetch state)
-  const [aiState, setAiState] = useState('idle') // 'idle' | 'loading' | 'success' | 'error'
+  const [aiState, setAiState] = useState('idle')
   const [aiResult, setAiResult] = useState(null)
   const [aiError, setAiError] = useState('')
 
+  // Fetch and display the GitHub issue.
   async function handleAnalyze(e) {
     e.preventDefault()
 
     const trimmed = url.trim()
+
     if (!trimmed) {
       setErrorMsg('Please enter a GitHub issue URL.')
       setState('error')
@@ -255,94 +310,116 @@ function App() {
     setState('loading')
     setResult(null)
     setErrorMsg('')
-    // Reset AI state whenever a new issue is fetched
     setAiState('idle')
     setAiResult(null)
     setAiError('')
 
     try {
-      const response = await fetch('/api/github-issue', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ issueUrl: trimmed }),
-      })
+      const response = await fetch(
+        `${API_BASE_URL}/api/github-issue`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ issueUrl: trimmed }),
+        },
+      )
 
       const data = await response.json()
 
-      if (!data.ok) {
-        throw new Error(data.error || 'Something went wrong. Please try again.')
+      if (!response.ok || !data.ok) {
+        throw new Error(
+          data.error ||
+            `Could not fetch the GitHub issue (HTTP ${response.status}).`,
+        )
       }
 
       setResult(data)
       setState('success')
     } catch (err) {
-      setErrorMsg(err.message || 'Network error. Make sure the backend is running.')
+      setErrorMsg(
+        err.message ||
+          'Network error. Please check the backend connection.',
+      )
       setState('error')
     }
   }
 
+  // Request AI analysis for the fetched issue.
   async function handleAiAnalyze() {
     if (!result) return
+
     setAiState('loading')
     setAiResult(null)
     setAiError('')
 
-    let response
     try {
-      response = await fetch('/api/analyze', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(result),
-      })
-    } catch {
-      setAiError('Could not reach the backend. Make sure the Express server is running on port 3000.')
-      setAiState('error')
-      return
-    }
+      const response = await fetch(
+        `${API_BASE_URL}/api/analyze`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(result),
+        },
+      )
 
-    let data
-    try {
-      data = await response.json()
-    } catch {
-      setAiError(`Unexpected response from the server (HTTP ${response.status}). Try again.`)
-      setAiState('error')
-      return
-    }
+      const data = await response.json()
 
-    if (!data.ok) {
-      setAiError(data.error || 'AI analysis failed. Please try again.')
-      setAiState('error')
-      return
-    }
+      if (!response.ok || !data.ok) {
+        throw new Error(
+          data.error ||
+            `AI analysis failed (HTTP ${response.status}).`,
+        )
+      }
 
-    setAiResult(data)
-    setAiState('success')
+      setAiResult(data)
+      setAiState('success')
+    } catch (err) {
+      setAiError(
+        err.message ||
+          'Could not reach the backend. Please try again.',
+      )
+      setAiState('error')
+    }
   }
 
   const isLoading = state === 'loading'
 
   return (
     <div className="app">
-      {/* ── Hero header ─────────────────────────────────────────────────── */}
+      {/* Hero */}
       <header className="hero">
-        <div className="hero-badge" aria-label="Hacktoberfest 2026 challenge">
+        <div
+          className="hero-badge"
+          aria-label="Hacktoberfest 2026 challenge"
+        >
           🎃 Hacktoberfest Challenge
         </div>
+
         <h1 className="hero-title">
           <span className="highlight">IssuePilot</span> AI
         </h1>
+
         <p className="hero-subtitle">
-          Paste any public GitHub issue URL and get a beginner-friendly breakdown powered by open-source AI.
+          Paste any public GitHub issue URL and get a beginner-friendly
+          breakdown powered by open-source AI.
         </p>
       </header>
 
-      {/* ── Main content ─────────────────────────────────────────────────── */}
+      {/* Main content */}
       <main className="content">
+        <section
+          className="search-card"
+          aria-label="Issue URL input"
+        >
+          <label htmlFor="issue-url-input">
+            GitHub Issue URL
+          </label>
 
-        {/* ── Search card ─────────────────────────────────────────────── */}
-        <section className="search-card" aria-label="Issue URL input">
-          <label htmlFor="issue-url-input">GitHub Issue URL</label>
-          <form className="input-row" onSubmit={handleAnalyze} noValidate>
+          <form
+            className="input-row"
+            onSubmit={handleAnalyze}
+            noValidate
+          >
             <input
               id="issue-url-input"
               className="url-input"
@@ -351,11 +428,14 @@ function App() {
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               disabled={isLoading}
-              aria-describedby={state === 'error' ? 'error-message' : undefined}
+              aria-describedby={
+                state === 'error' ? 'error-message' : undefined
+              }
               aria-invalid={state === 'error' ? 'true' : 'false'}
               autoComplete="url"
               spellCheck="false"
             />
+
             <button
               id="analyze-btn"
               type="submit"
@@ -366,33 +446,41 @@ function App() {
               {isLoading ? (
                 <>
                   <span className="spinner" aria-hidden="true" />
-                  Fetching&hellip;
+                  Fetching…
                 </>
               ) : (
-                <>
-                  🔍 Analyze Issue
-                </>
+                <>🔍 Analyze Issue</>
               )}
             </button>
           </form>
 
           {state === 'error' && (
-            <div id="error-message" className="error-banner" role="alert">
-              <span className="error-icon" aria-hidden="true">⚠️</span>
+            <div
+              id="error-message"
+              className="error-banner"
+              role="alert"
+            >
+              <span className="error-icon" aria-hidden="true">
+                ⚠️
+              </span>
               <span>{errorMsg}</span>
             </div>
           )}
         </section>
 
-        {/* ── Loading state ────────────────────────────────────────────── */}
+        {/* Issue fetching state */}
         {isLoading && (
-          <div className="loading-state" aria-live="polite" aria-label="Fetching issue from GitHub">
+          <div
+            className="loading-state"
+            aria-live="polite"
+            aria-label="Fetching issue from GitHub"
+          >
             <div className="loading-ring" aria-hidden="true" />
-            <p>Fetching issue from GitHub&hellip;</p>
+            <p>Fetching issue from GitHub…</p>
           </div>
         )}
 
-        {/* ── Results ──────────────────────────────────────────────────── */}
+        {/* Results */}
         {state === 'success' && result && (
           <IssueResult
             data={result}
@@ -402,19 +490,28 @@ function App() {
             aiError={aiError}
           />
         )}
-
       </main>
 
-      {/* ── Footer ───────────────────────────────────────────────────────── */}
+      {/* Footer */}
       <footer className="footer">
         <p>
           IssuePilot AI &mdash; Phase 2 &mdash; GitHub data via the{' '}
-          <a href="https://docs.github.com/en/rest" target="_blank" rel="noopener noreferrer">
+          <a
+            href="https://docs.github.com/en/rest"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             GitHub REST API
-          </a>
-          {' '}&amp; AI analysis via{' '}
-          <a href="https://groq.com" target="_blank" rel="noopener noreferrer">Groq</a>
-          {' '}(llama-3.1-8b-instant).
+          </a>{' '}
+          &amp; AI analysis via{' '}
+          <a
+            href="https://groq.com"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Groq
+          </a>{' '}
+          (llama-3.1-8b-instant).
         </p>
       </footer>
     </div>
