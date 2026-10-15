@@ -388,11 +388,7 @@ function App() {
     <div className="app">
       {/* Hero */}
       <header className="hero">
-        <div
-          className="hero-badge"
-          aria-label="Hacktoberfest 2026 challenge"
-        >
-        </div>
+        
 
         <h1 className="hero-title">
           <span className="highlight">IssuePilot</span> AI
