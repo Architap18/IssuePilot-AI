@@ -22,7 +22,7 @@ const router = express.Router()
 // ── constants ─────────────────────────────────────────────────────────────────
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
-const MODEL = 'llama-3.1-8b-instant'
+const MODEL = 'openai/gpt-oss-20b'
 
 // Keep the prompt small to stay well inside the 6 000 TPM free-tier limit.
 // Title + first 800 chars of body is more than enough for a useful analysis.

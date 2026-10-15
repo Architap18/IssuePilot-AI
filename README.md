@@ -1,174 +1,353 @@
-# IssuePilot AI
+IssuePilot AI 🤖
 
-> **Hacktoberfest Open-Source AI Challenge — Week 2: Side Hustle**
+Understand GitHub issues. Find your starting point. Contribute to open source with confidence.
 
-IssuePilot AI helps beginners understand public GitHub issues.
-Paste a GitHub issue URL → get the issue data **and** a beginner-friendly AI analysis powered by **Llama 3.1 8B** via [Groq](https://groq.com).
+IssuePilot AI helps beginners understand public GitHub issues without getting overwhelmed by technical jargon. Paste an issue URL to retrieve its details, then generate an AI-powered explanation, difficulty estimate, and actionable investigation steps.
 
----
+Built for the Hacktoberfest Open-Source AI Challenge — Week 2: Side Hustle.
 
-## What works right now (Phase 2 — complete)
+🔗 Project Links
 
-| Feature | Status |
-|---|---|
-| Parse and validate a GitHub issue URL | ✅ Working |
-| Fetch issue title, body, labels, state, author | ✅ Working |
-| Fetch up to 5 comments | ✅ Working |
-| Reject pull-request URLs | ✅ Working |
-| Handle 404 / rate-limit / network errors | ✅ Working |
-| Dark-theme React UI with loading / error states | ✅ Working |
-| Colorised label chips using GitHub label colours | ✅ Working |
-| Works without a GitHub token (60 req/hr limit) | ✅ Working |
-| **Beginner-friendly explanation via AI** | ✅ **Phase 2 — Live** |
-| **Difficulty estimate (beginner / intermediate / advanced)** | ✅ **Phase 2 — Live** |
-| **Actionable investigation steps** | ✅ **Phase 2 — Live** |
+🚀 Live Demo: https://issue-pilot-ai-six.vercel.app
 
-AI analysis uses **`llama-3.1-8b-instant`** via the [Groq API](https://console.groq.com).
-Free tier: **no credit card required**, 30 req/min, 14,400 req/day.
-**All AI responses are real model output — nothing is faked or hardcoded.**
+💻 GitHub Repository: https://github.com/Architap18/IssuePilot-AI
 
----
+📝 DEV.to Challenge Post: https://dev.to/architap18/issuepilot-ai-your-ai-powered-guide-to-open-source-contributions-557d
 
-## Requirements
+✨ Features
 
-- [Node.js](https://nodejs.org/) v18 or newer
-- Two terminal windows
-- A free [Groq API key](https://console.groq.com/keys) (for AI analysis)
+GitHub Issue Analysis
 
----
+Accepts public GitHub issue URLs.
 
-## Setup
+Validates issue URLs and rejects pull requests.
 
-### 1. Install dependencies
+Retrieves issue titles, descriptions, labels, state, and author information.
 
-```bash
-# from the project root
-cd frontend && npm install
-cd ../backend && npm install
-```
+Fetches up to five comments for additional context.
 
-### 2. Configure environment variables
+Handles invalid URLs, missing issues, rate limits, and network errors.
 
-```bash
+AI-Powered Insights
+
+Explains technical issues in beginner-friendly language.
+
+Estimates difficulty: beginner, intermediate, or advanced.
+
+Suggests actionable steps for investigating an issue.
+
+Uses GPT-OSS 20B through the Groq API.
+
+User Interface
+
+Dark-themed React interface.
+
+Loading and error states.
+
+GitHub label colors displayed in the issue overview.
+
+Separate issue-fetching and AI-analysis steps.
+
+🛠️ Tech Stack
+
+Component
+
+Technology
+
+Frontend
+
+React, Vite, CSS
+
+Backend
+
+Node.js, Express.js
+
+Issue data
+
+GitHub REST API
+
+AI model
+
+openai/gpt-oss-20b
+
+AI inference
+
+Groq API
+
+Frontend hosting
+
+Vercel
+
+Backend hosting
+
+Render
+
+🔄 How It Works
+
+A user pastes a public GitHub issue URL.
+
+The React frontend sends the URL to the Express backend.
+
+The backend validates the URL and fetches issue details and comments through the GitHub REST API.
+
+The frontend displays the issue information.
+
+The user requests an AI analysis.
+
+The backend sends the relevant issue data to the Groq API.
+
+The generated explanation, difficulty estimate, and investigation steps are displayed to the user.
+
+User
+  |
+  v
+React Frontend (Vercel)
+  |
+  | POST /api/github-issue
+  v
+Express Backend (Render)
+  |
+  v
+GitHub REST API
+  |
+  v
+Issue Details + Comments
+  |
+  | POST /api/analyze
+  v
+Groq API (GPT-OSS 20B)
+  |
+  v
+Beginner-Friendly Analysis
+
+🚀 Run Locally
+
+Prerequisites
+
+Node.js 18 or newer
+
+npm
+
+A Groq API key for AI analysis
+
+1. Clone the repository
+
+git clone https://github.com/Architap18/IssuePilot-AI.git
+cd IssuePilot-AI
+
+2. Install dependencies
+
 cd backend
-cp .env.example .env
-# Open .env and set GROQ_API_KEY (required for AI analysis)
-```
+npm install
 
-Get a free Groq key at <https://console.groq.com/keys> — no credit card needed.
+cd ../frontend
+npm install
 
-### 3. Start the backend
+3. Configure environment variables
 
-```bash
+From the project root:
+
+cp backend/.env.example backend/.env
+
+Open backend/.env and configure your values:
+
+GROQ_API_KEY=your_groq_api_key_here
+GITHUB_TOKEN=
+PORT=3000
+
+Get a Groq API key at console.groq.com/keys.
+
+A GitHub token is optional. Without one, requests use GitHub's unauthenticated API rate limit.
+
+Never commit real API keys or secrets. Keep your local .env file out of Git.
+
+4. Start the backend
+
+In the first terminal:
+
 cd backend
 npm run dev
-# Express listens on http://localhost:3000
-```
 
-### 4. Start the frontend
+The backend normally runs at:
 
-```bash
+http://localhost:3000
+
+Check the health endpoint:
+
+http://localhost:3000/api/health
+
+5. Start the frontend
+
+In a second terminal:
+
 cd frontend
 npm run dev
-# Vite opens on http://localhost:5173 (or 5174 if 5173 is taken)
-```
 
-Open the URL Vite prints. Paste any public GitHub issue URL, click **Analyze Issue** to fetch the data, then click **🤖 Analyze with AI** to get the AI breakdown.
+Open the local URL printed by Vite, usually:
 
----
+http://localhost:5173
 
-## Environment variables
+The frontend's Vite configuration proxies API requests to the local backend during development.
 
-| Variable | Required | Description |
-|---|---|---|
-| `GROQ_API_KEY` | **Yes** (for AI) | Free Groq API key. [Get one here.](https://console.groq.com/keys) No credit card. |
-| `GITHUB_TOKEN` | No | GitHub personal access token. Raises the rate limit from 60 → 5,000 req/hr. [Create one here.](https://github.com/settings/tokens) |
-| `PORT` | No | Port for Express (default: `3000`). |
+🔐 Environment Variables
 
-Copy `backend/.env.example` to `backend/.env`.
-`.env` is gitignored — never commit your real keys.
+Backend
 
----
+Variable
 
-## API reference
+Required
 
-### `GET /api/health`
+Description
 
-Returns `{ "ok": true, "message": "..." }` — confirms the server is running.
+GROQ_API_KEY
 
-### `POST /api/github-issue`
+For AI analysis
 
-**Request body:**
-```json
-{ "issueUrl": "https://github.com/owner/repo/issues/123" }
-```
+Authenticates requests to Groq
 
-**Success response (abbreviated):**
-```json
+GITHUB_TOKEN
+
+No
+
+Increases the GitHub REST API rate limit
+
+PORT
+
+No
+
+Port used by Express; defaults to 3000
+
+FRONTEND_URL
+
+For deployed frontend access
+
+Production frontend origin allowed by CORS
+
+Frontend
+
+Variable
+
+Description
+
+VITE_API_BASE_URL
+
+Base URL of the backend API
+
+For the deployed frontend, configure:
+
+VITE_API_BASE_URL=https://issuepilot-ai.onrender.com
+
+Set this variable in the Vercel project environment settings and redeploy after changing it.
+
+For the deployed backend, configure GROQ_API_KEY and FRONTEND_URL in Render's environment settings. Set FRONTEND_URL to the production frontend origin.
+
+Security note: Never put API keys in frontend variables prefixed with VITE_. These values can be exposed to users through the browser.
+
+📡 API Reference
+
+GET /api/health
+
+Checks whether the backend is running.
+
+Example response:
+
 {
   "ok": true,
-  "repository": { "owner": "...", "name": "...", "fullName": "owner/repo" },
-  "issue": { "number": 123, "title": "...", "state": "open", ... },
-  "comments": [{ "id": 1, "author": "...", "body": "...", "createdAt": "..." }],
-  "meta": { "fetchedAt": "...", "commentsFetched": 5, "totalComments": 5, "aiAnalysis": null }
+  "message": "Server is running"
 }
-```
 
-### `POST /api/analyze`
+The exact message depends on the backend implementation.
 
-Accepts the JSON object returned by `/api/github-issue` and returns an AI analysis.
-Requires `GROQ_API_KEY` to be set.
+POST /api/github-issue
 
-**Request body:** the full JSON from `POST /api/github-issue`
+Fetches a GitHub issue and its comments.
 
-**Success response:**
-```json
+Request body:
+
 {
-  "ok": true,
-  "model": "llama-3.1-8b-instant",
-  "analysis": "1. **Explanation** ...\n2. **Difficulty** ...\n3. **Next Steps** ...",
-  "usage": { "prompt_tokens": 312, "completion_tokens": 198, "total_tokens": 510 }
+  "issueUrl": "https://github.com/vercel/next.js/issues/92961"
 }
-```
 
-**Error response:**
-```json
-{ "ok": false, "error": "Human-readable error message." }
-```
+A successful response contains repository information, issue details, comments, and metadata.
 
----
+POST /api/analyze
 
-## Project structure
+Generates an AI analysis using the issue data returned by /api/github-issue.
 
-```
-111/
+The request body should contain the JSON object returned by the issue-fetching endpoint.
+
+A successful response includes the model name, generated analysis, and token usage when available.
+
+Both endpoints return errors when a request cannot be processed. Refer to the backend implementation for the exact response fields and HTTP status codes.
+
+📁 Project Structure
+
+IssuePilot-AI/
 ├── backend/
 │   ├── routes/
-│   │   ├── github.js      # POST /api/github-issue
-│   │   └── analyze.js     # POST /api/analyze  (Phase 2 — Groq AI)
-│   ├── server.js          # Express entry point
+│   │   ├── github.js
+│   │   └── analyze.js
+│   ├── server.js
 │   ├── package.json
-│   └── .env.example       # Copy to .env and set GROQ_API_KEY
+│   └── .env.example
 ├── frontend/
 │   ├── src/
-│   │   ├── App.jsx        # Main UI component
-│   │   ├── App.css        # Design system (dark theme)
-│   │   ├── index.css      # Minimal reset
-│   │   └── main.jsx       # React entry point
+│   │   ├── App.jsx
+│   │   ├── App.css
+│   │   ├── index.css
+│   │   └── main.jsx
 │   ├── index.html
-│   └── vite.config.js     # Proxies /api → localhost:3000
-├── .gitignore
-└── README.md
-```
+│   ├── vite.config.js
+│   └── package.json
+└── .gitignore
 
----
+🧪 Useful Commands
 
-## Scripts
+Run each command from its relevant directory.
 
-| Directory | Command | Effect |
-|---|---|---|
-| `backend/` | `npm run dev` | Start Express with `--watch` (auto-restarts on save) |
-| `backend/` | `npm start` | Start Express once (no auto-restart) |
-| `frontend/` | `npm run dev` | Start Vite dev server |
-| `frontend/` | `npm run lint` | Run oxlint |
-| `frontend/` | `npm run build` | Build production bundle to `frontend/dist/` |
+Backend
+
+npm run dev
+npm start
+
+Frontend
+
+npm run dev
+npm run lint
+npm run build
+
+🌱 Why Open Innovation Matters
+
+Open source makes software development more collaborative and accessible. However, newcomers often struggle to understand unfamiliar codebases, technical issue descriptions, and the first steps required to contribute.
+
+IssuePilot AI aims to lower this initial barrier by translating issue context into a clearer starting point. It supports learning and investigation while encouraging contributors to read the original issue, explore the codebase, and communicate with maintainers.
+
+🔮 Future Improvements
+
+Recommend relevant files and directories to investigate.
+
+Identify the skills and technologies needed for an issue.
+
+Suggest related documentation and learning resources.
+
+Generate structured contribution plans.
+
+Add automated tests and broader error-handling coverage.
+
+🤝 Contributing
+
+Contributions, suggestions, and feedback are welcome.
+
+Fork this repository.
+
+Create a feature branch.
+
+Make your changes and test them.
+
+Open a pull request describing your contribution.
+
+Please never commit credentials, API keys, or other secrets.
+
+📄 License
+
+No license is specified in this README yet. Add a LICENSE file before claiming the project is distributed under a particular open-source license.
